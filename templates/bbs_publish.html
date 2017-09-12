@@ -1,0 +1,126 @@
+{% extends 'bbs_index.html' %}
+{% load staticfiles %}
+{% block custom_css %}
+    <style>
+        .w-title {
+            font-size: 28px;
+            font-weight: bold;
+            font-family: "黑体";
+        }
+    </style>
+{% endblock %}
+{% block bbs %}
+    <head>
+        <script src='{% static 'js/tinymce/tinymce.min.js' %}'></script>
+  <script>
+  tinymce.init(
+      {
+  selector: 'textarea',
+  height: 500,
+  theme: 'modern',
+  language: 'zh_CN',
+  plugins: [
+    'advlist autolink lists link image charmap print preview hr anchor pagebreak',
+    'searchreplace wordcount visualblocks visualchars code fullscreen',
+    'insertdatetime media nonbreaking save table contextmenu directionality',
+    'emoticons template paste textcolor colorpicker textpattern imagetools codesample toc help'
+  ],
+  toolbar1: 'undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
+  toolbar2: 'print preview media | forecolor backcolor emoticons | codesample help',
+  image_advtab: true,
+  templates: [
+    { title: 'Test template 1', content: 'Test 1' },
+    { title: 'Test template 2', content: 'Test 2' }
+  ],
+  content_css: [
+    '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+    '//www.tinymce.com/css/codepen.min.css'
+  ]
+ }
+  );
+  </script>
+    </head>
+    <div class="container">
+        <div class="row" style="">
+            <div class="col-lg-offset-3 col-lg-6" style="margin-top: 6%; width: 700px">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title text-center">发表帖子</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-sm-10 col-sm-offset-1">
+                            <form method="post" action="/bbsPublishSave/" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="name" name="title"
+                                           placeholder="请输入标题"
+                                           maxlength="20">
+                                </div>
+                                <div class="form-group">
+                                <label>请选择所属目录</label>
+                                    <select name="select">
+                                        {% for cate in category %}
+                                            <option value="{{ cate.name }}">{{ cate.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                <label>请选择地块信息</label>
+                                    <select name="select_land">
+                                        {% for lands in land %}
+                                            <option value="{{ lands.search_id }}">{{ lands.title }}</option>
+                                        {% endfor %}
+                                            <option value="0">空</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <input type="text" class="form-control" id="name" name="summary"
+                                           placeholder="请输入摘要"
+                                           maxlength="20">
+                                </div>
+                                <div class="form-group">
+                                    <label for="InputDescription">书写内容</label>
+                                    <textarea id="mytextarea" name="content"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>上传图片一</label>
+                                    <br>
+                                    <div class="">
+                                        <input type="file" class="" id="thumbnail" name="image">
+                                        <br>
+                                        <img class="img-responsive img-circle img-block center-block" id="avatar"
+                                             style="height: 150px; width: 150px" alt="预览图区域" src="">
+                                    </div>
+                                </div>
+                                <div id="error"></div>
+                                <button type="submit" class="btn btn-primary btn-block center-block">确认</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function getObjectURL(file) {
+            var url = null;
+            if (window.createObjectURL != undefined) { // basic
+                url = window.createObjectURL(file);
+            } else if (window.URL != undefined) { // mozilla(firefox)
+                url = window.URL.createObjectURL(file);
+            } else if (window.webkitURL != undefined) { // webkit or chrome
+                url = window.webkitURL.createObjectURL(file);
+            }
+            return url;
+        }
+
+        $('#thumbnail').change(function () {
+            eImg = $('#avatar');
+            eImg.attr('src', getObjectURL($(this)[0].files[0]));
+        });
+        $('#thumbnail1').change(function () {
+            eImg = $('#avatar1');
+            eImg.attr('src1', getObjectURL($(this)[1].files[1]));
+        });
+    </script>
+{% endblock %}

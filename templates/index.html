@@ -1,0 +1,477 @@
+{% load staticfiles %}
+{% block head %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>欢迎来到芒种网</title>
+        <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+        <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/bootstrap-submenu.js' %}"></script>
+        <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-submenu.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="https://js.arcgis.com/3.21/dijit/themes/claro/claro.css ">
+        <link rel="stylesheet" href="https://js.arcgis.com/3.21/esri/css/esri.css">
+        <style>
+            html, body, #mapDiv {
+                height: 100%;
+                margin: 0;
+            }
+
+            #BasemapToggle {
+                position: absolute;
+                top: 200px;
+                left: 20px;
+                z-index: 50;
+            }
+
+            #LocateButton {
+                position: absolute;
+                top: 295px;
+                left: 40px;
+                z-index: 50;
+            }
+
+            #info {
+                position: absolute;
+                right: 20px;
+                top: 70px;
+                z-index: 50;
+                font: 14px sans-serif;
+                background: #fff;
+                width: 160px;
+                text-align: center;
+                border-radius: 10px;
+                opacity: 0.75;
+            }
+
+            #search {
+                display: block;
+                position: absolute;
+                z-index: 50;
+                top: 70px;
+                left: 20px;
+            }
+
+        </style>
+        <script src="https://js.arcgis.com/3.21/"></script>
+        <script>
+            var map;
+            require([
+                "esri/map",
+                "esri/tasks/QueryTask",
+                "esri/tasks/query",
+                "esri/dijit/Search",
+                "esri/dijit/LocateButton",
+                "esri/dijit/BasemapToggle",
+                "esri/renderers/UniqueValueRenderer",
+                "dojo/on",
+                "dojo/dom",
+                "esri/layers/WebTiledLayer",
+                "esri/toolbars/draw",
+                "esri/toolbars/edit",
+                "esri/graphic",
+                "esri/config",
+
+                "esri/layers/FeatureLayer",
+
+                "esri/symbols/SimpleMarkerSymbol",
+                "esri/symbols/SimpleLineSymbol",
+                "esri/symbols/SimpleFillSymbol",
+                "esri/symbols/PictureMarkerSymbol",
+                "esri/renderers/SimpleRenderer",
+                "esri/InfoTemplate",
+
+                "esri/dijit/editing/TemplatePicker",
+
+                "dojo/_base/array",
+                "dojo/_base/event",
+                "dojo/_base/lang",
+
+                "dijit/registry",
+
+                "dijit/layout/BorderContainer", "dijit/layout/ContentPane",
+                "dijit/form/Button", "dojo/domReady!"
+            ], function (Map, QueryTask, Query, Search, LocateButton, BasemapToggle, UniqueValueRenderer, on, dom, WebTiledLayer, Draw, Edit, Graphic, esriConfig,
+                         FeatureLayer, SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol,
+                         PictureMarkerSymbol, SimpleRenderer, InfoTemplate, TemplatePicker,
+                         arrayUtils, event, lang, registry) {
+
+
+                // refer to "Using the Proxy Page" for more information:  https://developers.arcgis.com/javascript/3/jshelp/ags_proxy.html
+                esriConfig.defaults.io.proxyUrl = "/proxy/";
+
+                // This service is for development and testing purposes only. We recommend that you create your own geometry service for use within your applications.
+                esriConfig.defaults.geometryService = new esri.tasks.GeometryService("https://118.89.184.239:6443/arcgis/rest/services/Utilities/Geometry/GeometryServer");
+
+                map = new Map("mapDiv", {
+                    slider: false,
+                    basemap: "osm",
+                    center: [117.14, 34.21],
+                    zoom: 4
+
+                });
+                //定位到当前位置
+                map.on("layers-add-result", initEditing);
+                map.infoWindow.resize(300, 300);
+                var tileInfo = new esri.layers.TileInfo({
+                    "rows": 256,
+                    "cols": 256,
+                    "compressionQuality": 0,
+                    "origin": {
+                        "x": -180,
+                        "y": 90
+                    },
+                    "spatialReference": {
+                        "wkid": 4326
+                    },
+                    "lods": [
+                        {#                    {"level": 2, "resolution": 0.3515625, "scale": 147748796.52937502},#}
+                        {#                    {"level": 3, "resolution": 0.17578125, "scale": 73874398.264687508},#}
+                        {"level": 4, "resolution": 0.087890625, "scale": 36937199.132343754},
+                        {"level": 5, "resolution": 0.0439453125, "scale": 18468599.566171877},
+                        {"level": 6, "resolution": 0.02197265625, "scale": 9234299.7830859385},
+                        {"level": 7, "resolution": 0.010986328125, "scale": 4617149.8915429693},
+                        {"level": 8, "resolution": 0.0054931640625, "scale": 2308574.9457714846},
+                        {"level": 9, "resolution": 0.00274658203125, "scale": 1154287.4728857423},
+                        {"level": 10, "resolution": 0.001373291015625, "scale": 577143.73644287116},
+                        {"level": 11, "resolution": 0.0006866455078125, "scale": 288571.86822143558},
+                        {"level": 12, "resolution": 0.00034332275390625, "scale": 144285.93411071779},
+                        {"level": 13, "resolution": 0.000171661376953125, "scale": 72142.967055358895},
+                        {"level": 14, "resolution": 8.58306884765625e-005, "scale": 36071.483527679447},
+                        {"level": 15, "resolution": 4.291534423828125e-005, "scale": 18035.741763839724},
+                        {"level": 16, "resolution": 2.1457672119140625e-005, "scale": 9017.8708819198619},
+                        {"level": 17, "resolution": 1.0728836059570313e-005, "scale": 4508.9354409599309},
+                        {"level": 18, "resolution": 5.3644180297851563e-006, "scale": 2254.4677204799655}
+                    ]
+                });
+                //底图
+                var baseMap = new WebTiledLayer("http://${subDomain}.tianditu.com/img_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=c&TILECOL=${col}&TILEROW=${row}&TILEMATRIX={level}&FORMAT=tiles",
+                    //"http://${subDomain}.tianditu.com/DataServer?T=vec_c&X=${col}&Y=${row}&L=${level}", {
+                    {
+                        "copyright": "Tianditu",
+                        "id": "Tianditu",
+                        "subDomains": ["t0", "t1", "t2"],
+                        "tileInfo": tileInfo
+
+                    });
+                //底图标注
+                var baseMapMarker = new WebTiledLayer("http://${subDomain}.tianditu.com/cia_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=c&TILECOL=${col}&TILEROW=${row}&TILEMATRIX={level}&FORMAT=tiles",     //"http://${subDomain}.tianditu.com/DataServer?T=cva_c&X=${col}&Y=${row}&L=${level}", {
+                    {
+                        "copyright": "Tianditu",
+                        "id": "Tianditu2",
+                        "subDomains": ["t0", "t1", "t2"],
+                        "tileInfo": tileInfo
+                    });
+                map.addLayer(baseMap);
+                map.addLayer(baseMapMarker);
+
+                var infoTemplate = new InfoTemplate();
+                var landusePolygonLayer = new FeatureLayer("https://118.89.184.239:6443/arcgis/rest/services/农业/FeatureServer/1", {
+                    mode: FeatureLayer.MODE_SNAPSHOT,
+                    outFields: ["*"]
+                });
+                var landusePointLayer = new FeatureLayer("https://118.89.184.239:6443/arcgis/rest/services/农业/FeatureServer/0", {
+                    mode: FeatureLayer.MODE_SNAPSHOT,
+                    infoTemplate: infoTemplate,
+                    outFields: ["*"]
+                });
+                //设置样式
+                map.addLayers([landusePolygonLayer, landusePointLayer]);
+                console.log(landusePolygonLayer, landusePointLayer)
+
+                var symbol1 = new PictureMarkerSymbol({
+                    url: "{% static 'img/map_icon/nongye.png' %}",
+                    height: 25,
+                    width: 25
+                });
+
+                var symbol2 = new PictureMarkerSymbol({
+                    url: "{% static 'img/map_icon/red.png' %}",
+                    height: 30,
+                    width: 30
+                });
+
+                var symbol3 = new PictureMarkerSymbol({
+                    url: "{% static 'img/map_icon/orange.png' %}",
+                    height: 35,
+                    width: 35
+                });
+
+                var symbol4 = new PictureMarkerSymbol({
+                    url: "{% static 'img/map_icon/yellow.png' %}",
+                    height: 25,
+                    width: 25
+                });
+
+                var symbol5 = new PictureMarkerSymbol({
+                    url: "{% static 'img/map_icon/purple.png' %}",
+                    height: 25,
+                    width: 25
+                });
+                var renderer = new UniqueValueRenderer(symbol1, "TYPE");
+                renderer.addValue("1", symbol1);
+                renderer.addValue("2", symbol2);
+                renderer.addValue("3", symbol3);
+                renderer.addValue("4", symbol4);
+                renderer.addValue("5", symbol5);
+                landusePointLayer.setRenderer(renderer);
+
+                function initEditing(evt) {
+                    console.log("initEditing", evt);
+                    // var map = this;
+                    var currentLayer = null;
+                    var layers = arrayUtils.map(evt.layers, function (result) {
+                        return result.layer;
+                    });
+                    console.log("layers", layers);
+                    arrayUtils.forEach(layers, function (layer) {
+                        var editingEnabled = false;
+                        layer.on("dbl-click", function (evt) {
+                            event.stop(evt);
+                            if (editingEnabled === false) {
+                                editingEnabled = true;
+                                editToolbar.activate(Edit.EDIT_VERTICES, evt.graphic);
+                            } else {
+                                currentLayer = this;
+                                editToolbar.deactivate();
+                                editingEnabled = false;
+                            }
+                        });
+
+                        layer.on("click", function (evt) {
+                            var serch = evt.graphic.attributes.SEARCH;
+                            console.log(serch);
+                            {% for lands in land %}
+                                var c ={{ lands.search_id }};
+                                console.log(c);
+                                if (c == serch) {
+                                    console.log("aaaaaa");
+                                    infoTemplate.setTitle("{{ lands.title }}");
+                                    infoTemplate.setContent("<b><br/>" +
+                                        "<b>{{ lands.content }}<br/><br/>" +
+                                        "<a href='/personalLand/${SEARCH}/'>查看详情</a><br><br>" +
+                                        "<img src='../media/{{ lands.image }}'><br>");
+                                }
+                            {% endfor %}
+                        });
+                    });
+                }
+
+                on(dom.byId("search1"), "click", function () {
+                    var select = dom.byId("select").value;
+                    if (select == 1) {
+                        landusePolygonLayer.setDefinitionExpression("TYPE='1'");
+                        landusePointLayer.setDefinitionExpression("TYPE='1'");
+                    } else if (select == 2) {
+                        landusePolygonLayer.setDefinitionExpression("TYPE='2'");
+                        landusePointLayer.setDefinitionExpression("TYPE='2'");
+                    }
+                    else if (select == 3) {
+                        landusePolygonLayer.setDefinitionExpression("TYPE='3'");
+                        landusePointLayer.setDefinitionExpression("TYPE='3'");
+                    }
+                    else if (select == 4) {
+                        landusePolygonLayer.setDefinitionExpression("TYPE='4'");
+                        landusePointLayer.setDefinitionExpression("TYPE='4'");
+                    }
+                    else if (select == 5) {
+                        landusePolygonLayer.setDefinitionExpression("TYPE='5'");
+                        landusePointLayer.setDefinitionExpression("TYPE='5'");
+                    }
+                    else if (select == 6) {
+                        landusePolygonLayer.setDefinitionExpression();
+                        landusePointLayer.setDefinitionExpression();
+                    }
+
+                });
+                on(dom.byId("search2"), "click", function (e) {
+                    var select2 = dom.byId("select2").value;
+                    var mapserverse = "https://118.89.184.239:6443/arcgis/rest/services/农业/MapServer/1";
+                    var queryTask = new QueryTask(mapserverse);
+                    var query = new Query();
+                    query.outFields = ["X"];
+                    console.log(query.outFields)
+                    query.returnGeometry = true;
+                    query.where = "X >'"+select2+"'";
+                    console.log(query)
+                    a=35;
+                    b=45;
+                    c=120;
+                    d=130;
+{#                    query.where = "Y>'"+a+"'and Y<'"+b+"'and X>'"+c+"' and X<'"+d+"'";#}
+{#                    console.log(query)#}
+{#                    query.where = "Y<'"+b+"'";#}
+{#                    query.where = "X>'"+c+"'";#}
+{#                    query.where = "X<'"+d+"'";#}
+
+                    console.log('dierge hasnhu.....')
+                    queryTask.execute(query, showQueryResult);
+                });
+                function showQueryResult(queryResult){
+                    console.log(queryResult.features)
+                     if (queryResult.features.length >= 1) {
+                         console.log('dierge hasnhu show')
+                        for (var i = 0; i < queryResult.features.length; i++) {
+                            //获得图形graphic
+                            var graphic = queryResult.features[i];
+                            console.log(graphic);
+
+                            //获得教学楼名称（此处是和shp属性表对应的）
+
+                        }
+                    }
+                }
+
+                map.centerAndZoom(new esri.geometry.Point({
+                    "x": 117.14,
+                    "y": 34.21,
+                    "spatialReference": {"wkid": 4326}
+                }));
+                var toggle = new BasemapToggle({
+                    map: map,
+                    basemap: "satellite"
+                }, "BasemapToggle");
+                toggle.startup();
+                geoLocate = new LocateButton({
+                    map: map
+                }, "LocateButton");
+                geoLocate.startup();
+                var search = new Search({
+                    map: map
+                }, "search");
+                search.startup();
+                console.log(landusePointLayer.getSelectedFeatures());
+            });
+        </script>
+    </head>
+{% endblock %}
+<body>
+<div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region: 'top'" style="height: 10%">
+    <nav class="navbar navbar-inverse" style="opacity: 0.88; height: 100%; z-index: 1">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{% url 'index' %}">芒种</a>
+                <a class="navbar-brand" href="#">
+                    <img src="/media/{{ request.user.image }}"
+                         style="object-fit: cover; height: 20px; width: 20px; border-radius: 1px;">
+                </a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><p class="navbar-text" style="color: white">{{ request.user.nick_name }}</p></li>
+                    <li><a href="{% url 'space_info' %}">个人中心</a></li>
+                    <li><a href="{% url 'bbs_index' %}">农业信息共享平台</a></li>
+                    <li><a href="{% url 'map_editland' %}">添加地块</a></li>
+                </ul>
+
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a tabindex="0" data-toggle="dropdown" data-submenu>
+                            统计数据<span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="dropdown-submenu">
+                                <a tabindex="0">历年农作物统计查询</a>
+                                <ul class="dropdown-menu">
+                                    <li class="dropdown-submenu">
+                                        <a tabindex="0">稻谷</a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="/mapCountRice/2000">2000</a></li>
+                                            <li><a href="/mapCountRice/2001">2001</a></li>
+                                            <li><a href="/mapCountRice/2001">2002</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown-submenu">
+                                <a tabindex="0">农产品价格查询</a>
+                                <ul class="dropdown-menu">
+                                    <li><a tabindex="0" href="/mapGetPrice/2">西红柿</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/3">大白菜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/4">土豆</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/6">青椒</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/7">韭菜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/8">茄子</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/10">大蒜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/11">白萝卜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/12">姜</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="/mapGetScan/">各个地块浏览量统计</a></li>
+                            <li><a href="/mapGetFavo/">各个地块收藏量统计</a></li>
+                            <li><a href="/mapElevation/">高程查看</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span>
+                        注销</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+</div>
+{% block map %}
+    <div id="mapDiv">
+        <div id="BasemapToggle"></div>
+        <div id="LocateButton"></div>
+        <div id="search"></div>
+        <div style="position: absolute;margin-top: 65px;z-index: 50;margin-left: 20px;opacity: 0.78">
+            <select id="select" data-dojo-type="dijit/form/ComboBox" style="height: 30px;border-radius: 10px">
+                <option value="6">显示全部</option>
+                <option value="1">个体经营</option>
+                <option value="2">小型农场</option>
+                <option value="3">大型种植</option>
+                <option value="4">个体养殖</option>
+                <option value="5">大型养殖</option>
+            </select>
+            <button id="search1" style="height: 30px;border-radius: 10px">筛选</button>
+            <br><br>
+            <input type="hidden" id="search2" style="height: 30px;border-radius: 10px" ></input>
+        </div>
+        <div id="info">
+            <div id="legend"
+                 style="margin-top: 10px;z-index: 50;background-color: #ffffff;opacity: 0.88;border-radius: 10px">
+                <div id="note">
+                    图例
+                </div>
+                <div id="note1">
+                    <img src="../static/img/map_icon/nongye.png" style="height: 20px; width: 20px">&nbsp&nbsp&nbsp&nbsp个体经营
+                </div>
+                <div id="note2">
+                    <img src="../static/img/map_icon/red.png" style="height: 20px; width: 20px">&nbsp&nbsp&nbsp&nbsp小型农场
+                </div>
+                <div id="note3">
+                    <img src="../static/img/map_icon/orange.png" style="height: 20px; width: 20px">&nbsp&nbsp&nbsp&nbsp大型种植
+                </div>
+                <div id="note4">
+                    <img src="../static/img/map_icon/yellow.png" style="height: 20px; width: 20px">&nbsp&nbsp&nbsp&nbsp个体养殖
+                </div>
+                <div id="note5">
+                    <img src="../static/img/map_icon/purple.png" style="height: 20px; width: 20px">&nbsp&nbsp&nbsp&nbsp大型养殖
+                    <br><br>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+</body>
+<script>
+    $(function () {
+        $('[data-submenu]').submenupicker();
+    });
+</script>
+</html>

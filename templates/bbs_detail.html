@@ -1,0 +1,122 @@
+{% extends "bbs_index.html" %}
+{% load staticfiles %}
+{% block bbs %}
+    <head>
+        <script src='{% static 'js/tinymce/tinymce.min.js' %}'></script>
+        <script>
+            tinymce.init(
+                {
+                    selector: 'textarea',
+                    height: 200,
+                    theme: 'modern',
+                    language: 'zh_CN',
+                    plugins: [
+                        'advlist autolink lists link image charmap print preview hr anchor pagebreak',
+                        'searchreplace wordcount visualblocks visualchars code fullscreen',
+                        'insertdatetime media nonbreaking save table contextmenu directionality',
+                        'emoticons template paste textcolor colorpicker textpattern imagetools codesample toc help'
+                    ],
+                    toolbar1: 'undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
+                    toolbar2: 'print preview media | forecolor backcolor emoticons | codesample help',
+                    image_advtab: true,
+                    templates: [
+                        {title: 'Test template 1', content: 'Test 1'},
+                        {title: 'Test template 2', content: 'Test 2'}
+                    ],
+                    content_css: [
+                        '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+                        '//www.tinymce.com/css/codepen.min.css'
+                    ]
+                }
+            );
+        </script>
+    </head>
+    <body class="background" style="margin-top: 54px">
+    <div class="brief">
+        <div class="brief-left">
+            <p class="topic">来自话题： <span style="color: {{ bbs_obj.category.color }};font-size: larger">{{ bbs_obj.category }}</span></p>
+            <p class="title textcolor">{{ bbs_obj.title }}</p>
+            {% ifequal bbs_obj.author request.user %}
+                <a href="/bbsDel/{{ bbs_obj.id }}" class="topic">删除</a>
+                <a href="/bbsUpdata/{{ bbs_obj.id }}" class="topic">修改</a>
+            {% endifequal %}
+        </div>
+        <div class="brief-right">
+            <button class="btn btn-default textcolor" type="submit" href="#add_com">
+                <img src="{% static 'img/bbs/comment.jpg' %}">
+                <a href="#comment">写评论</a>
+            </button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="article shadow" style="overflow:scroll">
+                    <img src="/media/{{ request.user.image }}"
+                         style="width:25px;height:25px;">&nbsp;{{ bbs_obj.author }}
+                    <p class="topic">发表时间 {{ bbs_obj.created_at }}</p>
+                    <p>
+                    {% ifnotequal bbs_obj.land.search_id 0%}
+                    <a href='/personalLand/{{ bbs_obj.land.search_id }}/'>查看相关地块详情</a>
+                    {% endifnotequal %}
+                        {% autoescape off %}
+                        {{ bbs_obj.content }}
+                        {% endautoescape %}
+                        <br>
+                        <img  style="width: auto" src="/media/{{ bbs_obj.image }}">
+                    </p>
+
+                </div>
+                <br><br><br>
+                <div class="show-comments shadow">
+                    <p style="font-weight:bold">{{ com_count }}条评论</p>
+                    <hr>
+                    <!--评论内容-->
+                    <div id="comment">
+                        {% for com in bbs_com %}
+                            {% ifequal com.bbs_content_id bbs_obj.id %}
+                                {% ifequal com.author request.user %}
+                                    <img src="/media/{{ com.author.image }}" style="width:25px;height:25px;">&nbsp;
+                                    {{ com.author.username }}
+                                    <a href="/bbsCommentDel/{{ com.id }}/{{ com.bbs_content_id }}" class="topic">删除</a>
+                                {% else %}
+                                    <img src="/media/{{ com.author.image }}" style="width:25px;height:25px;">&nbsp;
+                                    {{ com.author.username }}
+                                {% endifequal %}
+                                {% autoescape off %}
+                                    <p>{{ com.comments }}</p>
+                                {% endautoescape %}
+                                <p class="topic">发表时间 {{ com.add_time }}</p>
+                                <br><br><br>
+                            {% endifequal %}
+                        {% endfor %}
+                    </div>
+                    <hr>
+                </div>
+                <br><br>
+
+                <form method="post" action="/addComment/{{ bbs_obj.id }}/" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="InputDescription" id="add_com">添加评论</label>
+                        <textarea id="mytextarea" name="comment"></textarea>
+                    </div>
+                    <div id="error"></div>
+                    <button type="submit" class="btn btn-primary btn-block center-block"
+                            style="width: 60px;margin-right: 10px">确认
+                    </button>
+                </form>
+            </div>
+            <div class="col-md-4">
+                <div class="article shadow">
+                    <p class="r_title">关于作者</p>
+                    <hr>
+                    <img src="/media/{{ bbs_obj.author.image }}" width="50px"
+                         height="50px">{{ bbs_obj.author.username }}
+                    <p>文章数：{{ bbs_count }}</p>
+                </div>
+                <br>
+            </div>
+        </div>
+    </div>
+    </body>
+{% endblock %}

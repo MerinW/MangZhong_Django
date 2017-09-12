@@ -1,0 +1,137 @@
+.background {
+    background-color: #FAFAFA;
+}
+
+.changebgcolor {
+    background-color: cornflowerblue;
+
+}
+
+.textcolor {
+    color: cornflowerblue;
+}
+
+.img {
+    width: 20px;
+    height: 20px;
+
+}
+
+.topic {
+    font-size: 14px;
+    color: darkgray;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    font-weight: bold;
+}
+
+.text {
+    font-size: 16px;
+    position: relative;
+    white-space: inherit;
+    overflow-y: hidden;
+    text-overflow: ellipsis;
+}
+
+.r_title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.r_text {
+    font-family: "黑体";
+    font-size: 16px;
+}
+
+.div1 {
+    height: 60px;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    position: relative;
+    top: 70px;
+}
+
+.div3 {
+    height: 200px;
+    background-color: white;
+    position: relative;
+    top: 70px;
+    padding: 10px;
+}
+
+.div4 {
+    height: 70px;
+    width: 730px;
+    overflow-y: hidden;
+    position: relative;
+}
+
+.div4-left {
+    width: 120px;
+    height: 100px;
+    float: left;
+}
+
+.div4-right {
+    height: 100px;
+    width: 600px;
+    float: right;
+}
+
+.div5 {
+    color: darkgray;
+}
+
+.brief {
+    background-color: #FFF;
+    height: 120px;
+
+}
+
+.brief-left {
+    height: 120px;
+    width: 600px;
+    position: relative;
+    top: 0px;
+    left: 110px;
+    float: left;
+}
+
+.brief-right {
+    height: 120px;
+    width: 300px;
+    float: right;
+    position: relative;
+    top: 15px;
+    right: 110px;
+}
+
+.show-comments {
+    height: auto;
+    background-color: white;
+    font-size: 16px;
+    padding: 10px;
+
+}
+
+.article {
+    background-color: white;
+    height: auto;
+    padding: 15px;
+}
+
+.shadow {
+    border-style: solid;
+    border-width: 1px;
+    border-color: #CCC;
+    -moz-box-shadow: 1px 1px 1px #CCC;
+    -webkit-box-shadow: 1px 1px 1px #CCC;
+    box-shadow: 1px 1px 1px 1px #CCC;
+    border-radius: 5px;
+}
+

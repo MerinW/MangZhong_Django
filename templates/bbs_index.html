@@ -1,0 +1,128 @@
+{% load staticfiles %}
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>芒种网论坛</title>
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bbs_index.css' %}">
+</head>
+
+<!--导航条-->
+<nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container-fluid" style="background:#FFF">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" style="font-size:30px;" href="{% url 'bbs_index' %}">芒种网-信息共享平台</a>
+        </div>
+        <form class="navbar-form navbar-left" method="post" action="/searchBBS/" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="text" name="search" class="form-control" placeholder="输入你感兴趣的内容">
+            </div>
+            <button type="submit" class="btn btn-default changebgcolor" style="font-weight:bold;color:white">查找</button>
+        </form>
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li><a href="{% url 'index' %}">网站首页</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a class="navbar-brand" href="#"><img src="/media/{{ request.user.image }}"
+                                                          style="object-fit: cover; height: 25px; width: 25px; border-radius: 1px;">
+                </a></li>
+                <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span> 注销</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% block bbs %}
+    <!--整体布局-->
+    <body class="background">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+
+                <!--导航栏-->
+                <div class="div1 shadow textcolor">
+                    <img src="{% static 'img/bbs/write.jpg' %}" style="padding-left:25px"><a
+                        href="{% url 'bbs_publish' %}">写文章&nbsp&nbsp&nbsp&nbsp</a>
+                    {% for cate in cate %}
+                        <a href="/bbs_filter/{{ cate.id }}"><span style="color: {{ cate.color }};font-size: larger">{{ cate.name }}</span></a>&nbsp&nbsp&nbsp&nbsp
+                    {% endfor %}
+                </div>
+                <br>
+
+                <!--内容栏-->
+                {% for bbs in bbs_list.object_list %}
+                    <div class="div3 shadow" style="height: 200px">
+                        <p class="topic">来自话题：<span
+                                style="color: {{ bbs.category.color }};font-size: larger">{{ bbs.category }}</span></p>
+                        <img src="/media/{{ bbs.author.image }}" class="img">&nbsp&nbsp{{ bbs.author.nick_name }}
+                        <a href="/details/{{ bbs.id }}" class="title textcolor"><p>{{ bbs.title }}</p></a>
+                        <!--文章格式-->
+                        <div class="div4">
+                            <div class="div4-left">
+                                <img src="/media/{{ bbs.image }}" style="width: 120px">
+                            </div>
+                            <div class="div4-right" style="overflow-y: hidden">
+                                <p class="text">
+                                    {% autoescape off %}
+                                        {{ bbs.summary }}
+                                    {% endautoescape %}
+                                </p>
+                            </div>
+                        </div>
+                        <br>
+                    </div>
+                    <br>
+                {% endfor %}
+
+            </div>
+            <!--右侧链接-->
+            <div class="col-md-4">
+                <div class="list-group shadow div5" style="position:relative;top:70px;">
+                    <a href="{% url 'bbs_person_detail' %}" class="list-group-item"><span
+                            class="glyphicon glyphicon-star" aria-hidden="true"></span>我的评论</a>
+                    <a href="{% url 'bbs_person_detail' %}" class="list-group-item"><span
+                            class="glyphicon glyphicon-user"
+                            aria-hidden="true"></span>我的文章</a>
+                </div>
+            </div>
+        </div>
+        <nav aria-label="Page navigation" style="margin-top: 40px;text-align: center">
+            <ul class="pagination">
+                <li>
+                    {% if bbs_list.has_previous %}
+                        <a href="?{{ bbs_list.previous_page_number.querystring }}" class="prev" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                            上一页
+                        </a>
+                    {% endif %}
+                </li>
+                <li>
+                    {% if bbs_list.has_next %}
+                        <a href="?{{ bbs_list.next_page_number.querystring }}" aria-label="Next" class="next">
+                            <span aria-hidden="true">&raquo;</span>
+                            下一页
+                        </a>
+                    {% endif %}
+                </li>
+            </ul>
+        </nav>
+
+
+    </div>
+
+    </body>
+{% endblock %}
+{% block custom_css %}
+{% endblock %}
+</html>

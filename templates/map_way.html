@@ -1,0 +1,164 @@
+{% load staticfiles %}
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-submenu.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-submenu.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <style type="text/css">
+        body, html {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            font-family: "微软雅黑";
+        }
+
+        #l-map {
+            height: 300px;
+            width: 100%;
+        }
+
+        #r-result, #r-result table {
+            width: 100%;
+        }
+    </style>
+    <script type="text/javascript"
+            src="http://api.map.baidu.com/api?v=2.0&ak=phQfelfnwbBuoFhAI77AMpYtXeTq28wl"></script>
+    <title>驾车导航的结果面板</title>
+</head>
+<body>
+<div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region: 'top'" style="height: 10%">
+    <nav class="navbar navbar-inverse" style="opacity: 0.88; height: 100%; z-index: 1">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{% url 'index' %}">芒种</a>
+                <a class="navbar-brand" href="#">
+                    <img src="/media/{{ request.user.image }}"
+                         style="object-fit: cover; height: 20px; width: 20px; border-radius: 1px;">
+                </a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><p class="navbar-text" style="color: white">{{ request.user.nick_name }}</p></li>
+                    <li><a href="{% url 'space_info' %}">个人中心</a></li>
+                    <li><a href="{% url 'bbs_index' %}">农业信息共享平台</a></li>
+                    <li><a href="{% url 'map_editland' %}">添加地块</a></li>
+                </ul>
+
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a tabindex="0" data-toggle="dropdown" data-submenu>
+                            统计数据<span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="dropdown-submenu">
+                                <a tabindex="0">历年农作物统计查询</a>
+                                <ul class="dropdown-menu">
+                                    <li class="dropdown-submenu">
+                                        <a tabindex="0">稻谷</a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="/mapCountRice/2000">2000</a></li>
+                                            <li><a href="/mapCountRice/2001">2001</a></li>
+                                            <li><a href="/mapCountRice/2001">2002</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown-submenu">
+                                <a tabindex="0">农产品价格查询</a>
+                                <ul class="dropdown-menu">
+                                    <li><a tabindex="0" href="/mapGetPrice/2">西红柿</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/3">大白菜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/4">土豆</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/6">青椒</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/7">韭菜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/8">茄子</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/10">大蒜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/11">白萝卜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/12">姜</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="/mapGetScan/">各个地块浏览量统计</a></li>
+                            <li><a href="/mapGetFavo/">各个地块收藏量统计</a></li>
+                            <li><a href="/mapElevation/">高程查看</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span>
+                        注销</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+</div>
+ <div style="position: absolute;margin-top: 70px;margin-left:10px;z-index: 50;height: 30px">
+        <input type="search" id="search" placeholder="请输入内容">
+        <button style="color: #1da7ee" onclick="search()">周边搜索</button>
+    </div>
+<div id="l-map">
+</div>
+<div id="r-result"></div>
+</body>
+</html>
+<script type="text/javascript">
+    // 百度地图API功能
+    var map = new BMap.Map("l-map");
+    map.centerAndZoom(new BMap.Point({{ x }}, {{ y }}), 12);
+    map.enableScrollWheelZoom(true);
+    var p1 = new BMap.Point({{ x }}, {{ y }});
+    map.addEventListener("click", function (e) {
+        //清除图形
+        map.clearOverlays();
+        var p2 = new BMap.Point(e.point.lng, e.point.lat);
+        var driving = new BMap.DrivingRoute(map, {
+            renderOptions: {
+                map: map,
+                panel: "r-result",
+                autoViewport: true,
+                enableDragging: true
+            }
+        });
+        driving.search(p2, p1);
+    });
+    var driving = new BMap.DrivingRoute(map, {
+        renderOptions: {
+            map: map,
+            panel: "r-result",
+            autoViewport: true,
+            enableDragging: true
+        }
+    });
+    //获取当前位置
+    var geolocation = new BMap.Geolocation();
+    geolocation.getCurrentPosition(function (r) {
+        if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+            var p3 = new BMap.Point(r.point.lng, r.point.lat);
+            driving.search(p3, p1);
+        }
+    }, {enableHighAccuracy: true})
+
+
+    //搜索
+    function search() {
+        se = document.getElementById("search").value
+        var local = new BMap.LocalSearch(map, {
+        renderOptions: {map: map, panel: "r-result"}
+    });
+    local.search(se);
+    }
+</script>

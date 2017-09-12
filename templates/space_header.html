@@ -1,0 +1,147 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>个人空间</title>
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/mycss.css' %}">
+    <script src="{% static 'js/myjs.js' %}"></script>
+
+    <style>
+        .header {
+            background-image: url("{% static 'img/麦田.jpg' %}");
+            height: 320px;
+            background-size: 100%;
+            background-repeat: no-repeat;
+        }
+
+        .navbar-default .navbar-nav {
+            text-align: center;
+            float: none;
+        }
+
+        .navbar-default .navbar-nav li {
+            display: inline-block;
+            float: none;
+        }
+    </style>
+</head>
+<body style="background-color: #e7e7e7;">
+<div style="padding-bottom: 70px">
+    <nav class="navbar navbar-inverse navbar-fixed-top" style="opacity: 0.88">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{% url 'index' %}">芒种</a>
+                <a class="navbar-brand" href="#">
+                    <img src="/media/{{ request.user.image }}"
+                         style="object-fit: cover; height: 20px; width: 20px; border-radius: 1px;">
+                </a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><p class="navbar-text" style="color: white">{{ request.user.nick_name }}</p></li>
+                    <li><a href="{% url 'space_info' %}">个人中心</a></li>
+                    <li><a href="{% url 'bbs_index' %}">农业信息共享</a></li>
+                    <li><a href="{% url 'map_editland' %}">添加地块</a></li>
+                </ul>
+
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a tabindex="0" data-toggle="dropdown" data-submenu>
+                            统计数据<span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="dropdown-submenu">
+                                <a tabindex="0">历年农作物统计查询</a>
+                                <ul class="dropdown-menu">
+                                    <li class="dropdown-submenu">
+                                        <a tabindex="0">稻谷</a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="/mapCountRice/2000">2000</a></li>
+                                            <li><a href="/mapCountRice/2001">2001</a></li>
+                                            <li><a href="/mapCountRice/2001">2002</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="dropdown-submenu">
+                                <a tabindex="0">农产品价格查询</a>
+                                <ul class="dropdown-menu">
+                                    <li><a tabindex="0" href="/mapGetPrice/2">西红柿</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/3">大白菜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/4">土豆</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/6">青椒</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/7">韭菜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/8">茄子</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/10">大蒜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/11">白萝卜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/12">姜</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="/mapGetScan/">各个地块浏览量统计</a></li>
+                            <li><a href="/mapGetFavo/">各个地块收藏量统计</a></li>
+                            <li><a href="/mapElevation/">高程查看</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span>
+                        注销</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+</div>
+<div class="container" style="margin-bottom: 1%">
+    <div class="row">
+        <div style="background-color: white; height: 430px; width: auto">
+            <div class="header">
+                <img src="/media/{{ request.user.image }}" height="200px" width="200px"
+                     style="object-fit: cover; border-style: solid; border-color: white; border-width: 6px; border-radius: 20px;
+              position:relative; top:200px; left:50px">
+                <h3 style="position: absolute; top: 400px; left: 450px;"><strong>{{ user.nick_name }}</strong></h3>
+                <a class="btn btn-default btn-lg pull-right" href="{% url 'space_info_edit' %}"
+                   style="position: relative; top: 350px; right: 30px; color: #607b8b; border: solid #607b8b">修改信息</a>
+            </div>
+        </div>
+
+        <div style="margin-top: 2%; padding-bottom: 2%; background-color: white">
+            <div class="navbar navbar-default">
+                <div class="container">
+                    <div class="navbar-collapse collapse ">
+                        <ul id="myTab" class="nav navbar-nav" style="clear: both">
+                            <li id="tab1"><a href="{% url 'space_info' %}" style="color: #122b40"><strong>个人信息</strong></a></li>
+                            <li id="tab2"><a href="{% url 'space_security1' %}" style="color: #122b40"><strong>安全设置</strong></a></li>
+                            <li id="tab3"><a href="{% url 'land_updata' %}" style="color: #122b40"><strong>修改地块描述</strong></a></li>
+                            <li id="tab4"><a href="{% url 'land_delete' %}" style="color: #122b40"><strong>删除地块信息</strong></a></li>
+                            <li id="tab5"><a href="{% url 'land_goods' %}" style="color: #122b40"><strong>商品信息</strong></a></li>
+                            <li id="tab6"><a href="{% url 'map_goods_delete' %}" style="color: #122b40"><strong>商品刪除</strong></a></li>
+                            <li id="tab7"><a href="{% url 'land_collection' %}" style="color: #122b40"><strong>收藏中心</strong></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+
+                {% block content %}{% endblock %}
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

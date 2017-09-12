@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <title>找回密码</title>
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/mycss.css' %}">
+</head>
+<body class="singInfo-backguoung" style="background-image: url('{% static 'img/麦田.jpg' %}')">
+<div class="container">
+    <div class="row">
+        <div class="col-lg-offset-4 col-lg-4" style="margin-top: 10%;">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">重置密码</h3>
+                </div>
+                <div class="panel-body">
+                    <form action="/reget/step2/" method="post">
+                        <div class="form-group">
+                            <label>密保问题</label>
+                            <input type="text" class="form-control" id="SEquestion" name="SEquestion"
+                                   value="{{ SEquestion }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>密保回答</label>
+                            <input type="text" class="form-control" id="SEanswer" name="SEanswer" placeholder="你的答案"
+                                   required="required">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword1">新密码</label>
+                            <input type="password" class="form-control" id="exampleInputPassword1"
+                                   placeholder="Password" name="password1" required="required">
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleInputPassword2">确认密码</label>
+                            <input type="password" class="form-control" id="exampleInputPassword2"
+                                   placeholder="Password" name="password2">
+                            <input type="hidden" value="{{ email }}" name="email" required="required">
+                        </div>
+                        {% if error %}
+                            <div id="logIn-error" class="alert alert-danger col-sm-offset-1 col-sm-10">
+                                {{ error }}
+                            </div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary">修改密码</button>
+                        {% csrf_token %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

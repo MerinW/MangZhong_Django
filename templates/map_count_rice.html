@@ -1,0 +1,107 @@
+{% extends 'index.html' %}
+{% load staticfiles %}
+{% block head %}
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>粮食产量统计</title>
+        <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+        <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/bootstrap-submenu.js' %}"></script>
+        <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-submenu.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="https://js.arcgis.com/3.21/dijit/themes/claro/claro.css ">
+        <link rel="stylesheet" href="https://js.arcgis.com/3.21/esri/css/esri.css">
+        <style>
+            html, body, #mapDiv {
+                height: 100%;
+                margin: 0;
+            }
+
+            .head-backguoung {
+                background-size: 100%;
+                background-repeat: no-repeat;
+                height: 650px;
+            }
+
+            #info {
+                position: absolute;
+                right: 0;
+                top: 0;
+                font: 14px sans-serif;
+                background: #fff;
+                width: 160px;
+                text-align: center;
+                border-radius: 0 0 0 10px;
+            }
+        </style>
+        <script src="https://js.arcgis.com/3.21/"></script>
+        <script>
+            require(["esri/map", "esri/InfoTemplate", "esri/layers/ArcGISDynamicMapServiceLayer", "esri/layers/FeatureLayer",
+                    "esri/renderers/ClassBreaksRenderer", "esri/symbols/SimpleFillSymbol", "esri/dijit/Legend",
+                    "esri/Color",
+                    "dojo/domReady!"],
+                function (Map, InfoTemplate, ArcGISDynamicMapServiceLayer, FeatureLayer, ClassBreaksRenderer, SimpleFillSymbol, Legend, Color) {
+                    var map = new Map("mapDiv");
+                    var infoTemplate = new InfoTemplate();
+                    infoTemplate.setTitle("稻谷总产量");
+                    infoTemplate.setContent("${name}${{ filed }}${数据}");
+                    //利用url创建一个动态地图服务对象
+//                var layer=new ArcGISDynamicMapServiceLayer("https://118.89.184.239:6443/arcgis/rest/services/rice_total/MapServer/0");
+                    //将地图服务对象添加到地图容器中
+                    var layer1 = new FeatureLayer("https://118.89.184.239:6443/arcgis/rest/services/rice_total/FeatureServer/0", {
+                        mode: FeatureLayer.MODE_SNAPSHOT,
+                        outFields: ["*"],
+                        infoTemplate: infoTemplate
+                    });
+                    console.log(layer1);
+
+//                map.addLayer(layer);
+                    map.addLayer(layer1);
+                    var symbol = new SimpleFillSymbol();
+                    symbol.setColor(new Color([150, 150, 150, 0.5]));
+
+                    var renderer = new ClassBreaksRenderer(symbol, "{{ year }}");
+                    renderer.addBreak(0, 5.3, new SimpleFillSymbol().setColor(new Color([247, 80, 0, 1])));
+                    renderer.addBreak(5.3, 16.8, new SimpleFillSymbol().setColor(new Color([255, 128, 0, 1])));
+                    renderer.addBreak(16.8, 64.2, new SimpleFillSymbol().setColor(new Color([196, 196, 0, 1])));
+                    renderer.addBreak(64.2, 160.9, new SimpleFillSymbol().setColor(new Color([140, 234, 0, 1])));
+                    renderer.addBreak(160.9, 296.9, new SimpleFillSymbol().setColor(new Color([0, 219, 0, 1])));
+                    renderer.addBreak(296.9, 511.9, new SimpleFillSymbol().setColor(new Color([0, 202, 202, 1])));
+                    renderer.addBreak(511.9, 724.9, new SimpleFillSymbol().setColor(new Color([0, 114, 227, 1])));
+                    renderer.addBreak(724.9, 1269.9, new SimpleFillSymbol().setColor(new Color([40, 40, 255, 1])));
+                    renderer.addBreak(1269.9, 1798.6, new SimpleFillSymbol().setColor(new Color([134, 0, 255, 1])));
+                    renderer.addBreak(1798.6, 2438.4, new SimpleFillSymbol().setColor(new Color([210, 0, 210, 1])));
+                    layer1.setRenderer(renderer);
+
+                    layer1.on("load", function () {
+
+                        var legend = new Legend({
+                            map: map,
+                            layerInfos: [{
+                                layer: layer1,
+                                title: "稻谷{{ year1 }}年产量"
+                            }]
+                        }, "legend");
+                        legend.startup();
+                    });
+                })
+        </script>
+    </head>
+{% endblock %}
+<body>
+{% block map %}
+    <div id="mapDiv" style="opacity: 1">
+            <div id="info" style="opacity: 1">
+                <div id="legend" style="margin-top: 60px"></div>
+            </div>
+        </div>
+{% endblock %}
+</body>
+<script>
+    $(function () {
+        $('[data-submenu]').submenupicker();
+    });
+</script>
+</html>

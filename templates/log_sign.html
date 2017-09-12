@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load staticfiles %}
+<head>
+    <meta charset="UTF-8">
+    <title>芒种</title>
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/mycss.css' %}">
+    <script src="{% static 'js/myjs.js' %}"></script>
+</head>
+<body>
+<div class="head-backguoung" style="background-image: url('{% static 'img/mangzhong.jpg' %}')">
+    <div class="container">
+        <div class="row">
+            <h1 class="text-center title"></h1>
+            <div class="col-lg-4 col-lg-offset-4 sign"style="margin-top: 130px;opacity: 0.70">
+                <ul id="myTab" class="nav nav-pills nav-justified">
+                    <li><a href="#signUp" data-toggle="tab">注册</a></li>
+                    <li><a href="#logIn" data-toggle="tab">登录</a></li>
+                </ul>
+
+                <div id="myTabContent" class="tab-content">
+                    <div class="tab-pane fade" id="signUp">
+                        <br>
+                        <form class="form-horizontal" action="/sign/" method="post">
+                            {% csrf_token %}
+                            <div class="form-group {% if signup_form.errors.email2 %}has-error{% endif %}">
+                                <label for="inputEmai2" class="col-sm-2 control-label">邮箱</label>
+                                <div class="col-sm-10">
+                                    <input type="email" class="form-control" id="inputEmai2" name="email2"
+                                           placeholder="邮箱" value="{{ signup_form.email2.value }}">
+                                </div>
+                            </div>
+                            <div class="form-group {% if signup_form.errors.password2 %}has-error{% endif %}">
+                                <label for="inputPassword2" class="col-sm-2 control-label">密码</label>
+                                <div class="col-sm-10">
+                                    <input type="password" class="form-control" id="inputPassword2" name="password2"
+                                           placeholder="密码必须8位字符以上">
+                                </div>
+                            </div>
+                            <div class="form-group {% if signup_form.errors.password3 %}has-error{% endif %}">
+                                <label for="inputPassword2" class="col-sm-2 control-label">确认</label>
+                                <div class="col-sm-10">
+                                    <input type="password" class="form-control" id="inputPassword3" name="password3"
+                                           placeholder="确认密码">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {% if flag %}
+                                    <div id="logIn-error" class="alert alert-danger col-sm-offset-1 col-sm-10">
+                                        {% for key,error in signup_form.errors.items %}{{ error }}{% endfor %}{{ msg2 }}
+                                    </div>
+                                {% endif %}
+                                <div class="col-sm-offset-1 col-sm-10 ">
+                                    <button type="submit" class="btn btn-primary btn-block">注册</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade in active" id="logIn">
+                        <br>
+                        <form class="form-horizontal" action="/log/" method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="inputEmail" class="col-sm-2 control-label">邮箱</label>
+                                <div class="col-sm-10">
+                                    <input type="email" class="form-control" id="inputEmail" name="email1"
+                                           placeholder="邮箱" value="{{ login_form.email1.value }}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPassword1" class="col-sm-2 control-label">密码</label>
+                                <div class="col-sm-10">
+                                    <input type="password" class="form-control" id="inputPassword1" name="password1"
+                                           placeholder="密码">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="checkbox col-sm-offset-2 col-sm-5">
+                                    <label><input type="checkbox"> 记住登录状态</label>
+                                </div>
+                                <div class="col-sm-5 forgrt-link">
+                                    <a href="{% url 'reget_step1' %}">忘了密码</a>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {% if msg %}
+                                    <div id="logIn-error" class="alert alert-danger col-sm-offset-1 col-sm-10">
+                                        {{ msg }}
+                                    </div>
+                                {% endif %}
+                                <div class="col-sm-offset-1 col-sm-10 ">
+                                    <button type="submit" class="btn btn-primary btn-block">登录</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div>
+    <div class="head-backguoung" style="background-image: url('{% static "img/mang.jpg" %}')">
+        <br>
+        <h1 class="text-center"></h1>
+    </div>
+</div>
+<div>
+    <div class="head-backguoung" style="background-image: url('{% static "img/zhong.jpg" %}')">
+        <br>
+        <h1 class="text-center"></h1>
+    </div>
+</div>
+
+<script>$('#myTab a[href="#{{ tab }}"]').tab('show')</script>
+</body>
+</html>

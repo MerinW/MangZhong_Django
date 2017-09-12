@@ -1,0 +1,263 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Elevation Profile: Create Features</title>
+   <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-submenu.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-submenu.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.21/dijit/themes/claro/claro.css ">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.21/esri/css/esri.css">
+    <script>var dojoConfig = { parseOnLoad: true };</script>
+    <script src="https://js.arcgis.com/3.21/"></script>
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        label {
+            font-family: arial;
+            color: white;
+            font-size: 14px;
+            display: block;
+            padding-bottom: 5px;
+        }
+        select {
+            display: block;
+        }
+        #info {
+            min-height: 100px;
+            min-width: 200px;
+            right: 5px;
+            top: 5px;
+            margin: 5px;
+            padding: 10px;
+            position: absolute;
+            width: 10%;
+            z-index: 40;
+            border: solid 2px #666;
+            border-radius: 4px;
+            background-color: #666;
+        }
+        #map {
+            padding: 0px;
+        }
+        #LocateButton {
+            position: absolute;
+            top: 95px;
+            left: 20px;
+            z-index: 50;
+        }
+    </style>
+    <script>
+        require([
+            "esri/map",
+            "esri/dijit/LocateButton",
+            "esri/toolbars/draw",
+            "esri/symbols/SimpleLineSymbol",
+            "esri/symbols/CartographicLineSymbol",
+            "esri/graphic",
+            "esri/units",
+            "esri/dijit/ElevationProfile",
+            "esri/Color",
+            "dojo/dom",
+            "dojo/on",
+            "dojo/domReady!"
+        ], function(
+            Map,
+            LocateButton,
+            Draw,
+            SimpleLineSymbol,
+            CartographicLineSymbol,
+            Graphic,
+            Units,
+            ElevationsProfileWidget,
+            Color,
+            dom,
+            on
+        ) {
+            var tb, epWidget, lineSymbol;
+            var map = new Map("map", {
+                basemap: "osm",
+                center: [118.78, 31.89],
+                zoom: 5
+            });
+            geoLocate = new LocateButton({
+                map: map
+            }, "LocateButton");
+            geoLocate.startup();
+
+            map.on("load", init);
+
+            function init() {
+                var eleList = ["Polyline", "FreehandPolyline"];
+                for (var ele in eleList) {
+                    on(dom.byId(eleList[ele]), "click", function (evt) {
+                        initToolbar(evt.target.id.toLowerCase());
+                    });
+                }
+                on(dom.byId("clear"), "click", function (evt) {
+                    map.graphics.clear();
+                })
+                on(dom.byId("unitsSelect"), "change", function (evt) {
+                    if (epWidget) {
+                        epWidget.set("measureUnits",evt.target.options[evt.target.selectedIndex].value);
+                    }
+                })
+
+                // lineSymbol used for freehand polyline and line.
+                lineSymbol = new CartographicLineSymbol(
+                    CartographicLineSymbol.STYLE_SOLID,
+                    new Color([255, 0, 0]), 2,
+                    CartographicLineSymbol.CAP_ROUND,
+                    CartographicLineSymbol.JOIN_MITER, 2
+                );
+
+                var chartOptions = {
+                    titleFontColor: "#ffffff",
+                    axisFontColor: "#ffffff",
+                    sourceTextColor: "white",
+                    busyIndicatorBackgroundColor: "#666"
+                };
+
+                var profileParams = {
+                    map: map,
+                    chartOptions: chartOptions,
+                    profileTaskUrl: "https://elevation.arcgis.com/arcgis/rest/services/Tools/ElevationSync/GPServer",
+                    scalebarUnits: Units.MILES
+                };
+
+                epWidget = new ElevationsProfileWidget(profileParams, dom.byId("profileChartNode"));
+                epWidget.startup();
+            }
+
+            function initToolbar(toolName) {
+                epWidget.clearProfile(); //Clear profile
+
+                map.graphics.clear();
+                tb = new Draw(map);
+                tb.on("draw-end", addGraphic);
+                tb.activate(toolName);
+                //map.disableMapNavigation();
+            }
+
+            function addGraphic(evt) {
+                //deactivate the toolbar and clear existing graphics
+                tb.deactivate();
+                map.enableMapNavigation();
+                var symbol = lineSymbol;
+                map.graphics.add(new Graphic(evt.geometry, symbol));
+                epWidget.set("profileGeometry", evt.geometry);
+
+                var sel = dom.byId("unitsSelect");
+                if (sel) {
+                    var val = sel.options[sel.selectedIndex].value;
+                    epWidget.set("measureUnits", sel);
+                }
+            }
+        })
+    </script>
+</head>
+<body class="claro">
+<div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region: 'top'" style="height: 10%">
+    <nav class="navbar navbar-inverse" style="opacity: 0.88; height: 100%; z-index: 1">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{% url 'index' %}">芒种</a>
+                <a class="navbar-brand" href="#">
+                    <img src="/media/{{ request.user.image }}"
+                         style="object-fit: cover; height: 20px; width: 20px; border-radius: 1px;">
+                </a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><p class="navbar-text" style="color: white">{{ request.user.nick_name }}</p></li>
+                    <li><a href="{% url 'space_info' %}">个人中心</a></li>
+                    <li><a href="{% url 'bbs_index' %}">论坛</a></li>
+                    <li><a href="{% url 'map_editland' %}">添加地块</a></li>
+                </ul>
+
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a tabindex="0" data-toggle="dropdown" data-submenu>
+                            统计数据<span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+
+                            <li class="dropdown-submenu">
+                                <a tabindex="0">稻谷</a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="/mapCountRice/2000">2000</a></li>
+                                    <li><a href="/mapCountRice/2001">2001</a></li>
+                                    <li><a href="/mapCountRice/2001">2002</a></li>
+                                </ul>
+                            </li>
+
+                            <li class="dropdown-submenu">
+                                <a tabindex="0">农产品价格查询</a>
+                                <ul class="dropdown-menu">
+                                    <li><a tabindex="0" href="/mapGetPrice/2">西红柿</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/3">大白菜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/4">土豆</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/6">青椒</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/7">韭菜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/8">茄子</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/10">大蒜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/11">白萝卜</a></li>
+                                    <li><a tabindex="0" href="/mapGetPrice/12">姜</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span>
+                        注销</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+</div>
+<div id="info" style="margin-top: 200px">
+    <label>选择一种方式:</label>
+    <button id="Polyline" type="button">折线</button>
+    <button id="FreehandPolyline" type="button">自由划线</button>
+    <button id="clear" type="button">清除</button>
+    <label>选择测量单位:</label>
+    <select id="unitsSelect">
+        <option value="esriMiles">公里</option>
+        <option value="esriKilometers">千米</option>
+        <option value="esriMeters">米</option>
+        <option value="esriNauticalMiles">海里</option>
+        <option value="esriYards">码（0.9144米）</option>
+        <option value="esriFeet">英尺（30.84厘米）</option>
+    </select>
+</div>
+<div id="mainContainer" data-dojo-type="dijit/layout/BorderContainer" data-dojo-props="design:'headline', gutters:true" style="width:100%;height:100%">
+    <div id="map" data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'center'" style="height:100%">
+        <div id="LocateButton"></div>
+    </div>
+    <div data-dojo-type="dijit/layout/ContentPane" data-dojo-props="region:'bottom'" style="background-color: #666;">
+        <div id="profileChartNode"></div>
+    </div>
+</div>
+</body>
+</html>

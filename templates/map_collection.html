@@ -1,0 +1,22 @@
+{% extends 'space_header.html' %}
+{% block content %}
+    <script >
+    window.onload(
+        window.location.hash = "#form"
+    )
+    </script>
+    <script>$("#tab7").addClass("active")</script>
+    <div class="col-md-7 col-md-offset-2" >
+    <div class="panel panel-default">
+  <div class="panel-heading">我的收藏</div>
+  <div class="panel-body">
+   {% for lands in land %}
+        <a href='/personalLand/{{ lands.land.search_id }}/'>{{ lands.land.title }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+    </div>
+    <br><br><br>
+{% endblock %}
+

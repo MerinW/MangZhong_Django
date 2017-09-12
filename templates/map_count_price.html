@@ -1,0 +1,135 @@
+{% extends 'index.html' %}
+{% load staticfiles %}
+{% block head %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>当日价格走势</title>
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-submenu.js' %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap-submenu.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.21/dijit/themes/claro/claro.css ">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.21/esri/css/esri.css">
+    <style>
+        html, body, #mapDiv {
+            height: 100%;
+            margin: 0;
+        }
+
+        #info {
+            position: absolute;
+            right: 0;
+            top: 0;
+            font: 14px sans-serif;
+            background: #fff;
+            width: 160px;
+            text-align: center;
+            border-radius: 0 0 0 10px;
+        }
+    </style>
+    <script src="https://js.arcgis.com/3.21/"></script>
+    <script>
+        require([
+            "dojo/_base/connect",
+            "dojo/dom",
+            "dojo/on",
+            "esri/renderers/ClassBreaksRenderer",
+            "esri/InfoTemplate",
+            "esri/map",
+            "esri/layers/FeatureLayer",
+            "esri/renderers/SimpleRenderer",
+            "esri/dijit/Legend",
+            "esri/Color",
+            "esri/symbols/SimpleFillSymbol",
+            "esri/symbols/SimpleLineSymbol",
+            "dojo/domReady!"
+        ], function (connect, dom, on, ClassBreaksRenderer, InfoTemplate, Map, FeatureLayer, SimpleRenderer, Legend, Color, SimpleFillSymbol, SimpleLineSymbol) {
+            var map = new Map("mapDiv");
+            var infoTemplate = new InfoTemplate();
+            infoTemplate.setTitle("价格");
+            infoTemplate.setContent("${name}{{ type }}的价格为${price}元/公斤");
+            //笔者server上的图层
+            var featureLayer = new FeatureLayer("https://118.89.184.239:6443/arcgis/rest/services/rice_total/FeatureServer/0", {
+                //注意这里的mode一定要指定MODE_SNAPSHOT，否则每次放大或缩小或者是平移都会执行FeatureLayer的update-end操作
+                mode: FeatureLayer.MODE_SNAPSHOT,
+                outFields: ["*"],
+                infoTemplate: infoTemplate
+            });
+            map.addLayer(featureLayer);
+            //定义一个render对FeatureLayer自定义的数据进行渲染
+//            var renderer = new SimpleRenderer(new SimpleFillSymbol().setOutline(new SimpleLineSymbol().setWidth(0.1).setColor(new Color([128,128,128]))));
+//            renderer.setColorInfo({
+//                //使用nico属性进行渲染
+//                field: "nico",
+//                minDataValue: 0,
+//                maxDataValue: 40,
+//                colors: [
+//                    new Color([0, 255, 0]),
+//                    new Color([255, 0, 0])
+//                ]
+//            });
+            var symbol = new SimpleFillSymbol();
+            symbol.setColor(new Color([150, 150, 150, 0.5]));
+            var renderer = new ClassBreaksRenderer(symbol, "price");
+            renderer.addBreak(0, 0.5, new SimpleFillSymbol().setColor(new Color([247, 80, 0, 0.5])));
+            renderer.addBreak(0.5, 0.8, new SimpleFillSymbol().setColor(new Color([255, 128, 0, 0.5])));
+            renderer.addBreak(0.8, 1.1, new SimpleFillSymbol().setColor(new Color([196, 196, 0, 0.5])));
+            renderer.addBreak(1.1, 1.5, new SimpleFillSymbol().setColor(new Color([140, 234, 0, 0.5])));
+            renderer.addBreak(1.5, 2.0, new SimpleFillSymbol().setColor(new Color([0, 219, 0, 0.5])));
+            renderer.addBreak(2.0, 2.5, new SimpleFillSymbol().setColor(new Color([0, 202, 202, 0.5])));
+            renderer.addBreak(2.5, 5.0, new SimpleFillSymbol().setColor(new Color([0, 114, 227, 0.5])));
+            renderer.addBreak(5, 10, new SimpleFillSymbol().setColor(new Color([40, 40, 255, 0.5])));
+            renderer.addBreak(10, 20, new SimpleFillSymbol().setColor(new Color([134, 0, 255, 0.5])));
+            renderer.addBreak(20, 100, new SimpleFillSymbol().setColor(new Color([210, 0, 210, 0.5])));
+            featureLayer.on("update-end", function () {
+                //输出其中一个graphic(面要素)的所有属性
+                for (var i = 0; i < featureLayer.graphics.length; i++) {
+                    //自定义数据，在每个面要素中添加nico属性
+                    {% for province in price %}
+                        if (featureLayer.graphics[i].attributes["省份"] == "{{ province.name }}") {
+                            featureLayer.graphics[i].attributes["price"] = {{ province.price }};
+                        }
+                    {% endfor %}
+//                featureLayer.setRenderer(renderer);
+                    featureLayer.redraw();
+                    //输出FeatureLayer中所有的graphic数
+                    console.log("number of graphics in featureLayer:" + featureLayer.graphics.length);
+                    //输出其中一个graphic(面要素)的所有属性
+                    console.log("10th graphic attributes in featureLayer:");
+                    console.log(featureLayer.graphics[10].attributes);
+                }
+            });
+            featureLayer.setRenderer(renderer);
+            featureLayer.on("load", function () {
+
+                var legend = new Legend({
+                    map: map,
+                    layerInfos: [{
+                        layer: featureLayer,
+                        title: "{{ type }}当日价格统计图"
+                    }]
+                }, "legend");
+                legend.startup();
+            });
+        });
+    </script>
+</head>
+{% endblock %}
+<body>
+{% block map %}
+<div id="mapDiv">
+    <div id="info">
+        <div id="legend" style="margin-top: 60px"></div>
+    </div>
+</div>
+{% endblock %}
+</body>
+<script>
+    $(function () {
+        $('[data-submenu]').submenupicker();
+    });
+</script>
+</html>

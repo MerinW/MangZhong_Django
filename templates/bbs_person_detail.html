@@ -1,0 +1,68 @@
+{% extends 'bbs_index.html' %}
+{% load staticfiles %}
+{% block bbs %}
+    <div class="container" style="margin-top: 60px">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="show-comments shadow">
+                    <div class="panel-group" id="accordion">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordion"
+                                       href="#collapseOne">
+                                        <ul class="list-group">
+                                            <li class="list-group-item">
+                                                <span class="badge" data-toggle="collapse">{{ bbs_num }}</span>
+                                                我的帖子
+                                            </li>
+                                        </ul>
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapseOne" class="panel-collapse collapse in">
+                                <div class="panel-body">
+                                    {% for bbs_obj in bbs %}
+                                        <li>
+                                             <a href="/details/{{ bbs_obj.id }}">{{ bbs_obj.title }}</a>
+                                        </li>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <br><br>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordion"
+                                       href="#collapsetwo">
+                                        <ul class="list-group">
+                                            <li class="list-group-item">
+                                                <span class="badge" data-toggle="collapse">{{ com_num }}</span>
+                                                我的评论
+                                            </li>
+                                        </ul>
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapsetwo" class="panel-collapse collapse in">
+                                <div class="panel-body">
+                                    {% for comment in com %}
+                                        {% autoescape off %}
+                                            <ol>
+                                            <li>
+                                               评论内容:<span style="color: #1da7ee">{{ comment.comments }}</span>来自帖子<a href="/details/{{ comment.bbs_content_id }}">{{ comment.bbs_content.title }}</a></nobr>
+                                            </li>
+                                            </ol>
+                                        {% endautoescape %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br><br>
+            </div>
+        </div>
+    </div>
+{% endblock %}
